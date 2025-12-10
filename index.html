@@ -11,6 +11,9 @@
             padding: 0;
             box-sizing: border-box;
             font-family: "Microsoft YaHei", sans-serif;
+            /* 修复移动端点击延迟 */
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
         body {
             background-color: #f5f7fa;
@@ -57,6 +60,9 @@
             cursor: pointer;
             transition: background-color 0.3s;
             margin-left: 1rem;
+            /* 移动端点击优化 */
+            -webkit-user-select: none;
+            user-select: none;
         }
         .auth-btn:hover {
             background-color: #2980b9;
@@ -76,6 +82,8 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .sign-btn:disabled {
             background-color: #95a5a6;
@@ -86,13 +94,14 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw; /* 修复移动端宽度 */
+            height: 100vh; /* 修复移动端高度 */
             background: rgba(0,0,0,0.5);
             display: none;
             justify-content: center;
             align-items: center;
-            z-index: 999;
+            z-index: 9999; /* 提高层级避免被遮挡 */
+            overflow-y: auto;
         }
         .modal-content {
             background: white;
@@ -100,6 +109,7 @@
             border-radius: 10px;
             width: 90%;
             max-width: 400px;
+            box-sizing: border-box;
         }
         .modal-tabs {
             display: flex;
@@ -113,6 +123,8 @@
             background: #eaeaea;
             border-radius: 8px;
             cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .modal-tabs button.active {
             background: #3498db;
@@ -144,6 +156,8 @@
             border-radius: 8px;
             cursor: pointer;
             margin-top: 1rem;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .send-code-btn {
             width: 100%;
@@ -154,12 +168,16 @@
             border-radius: 8px;
             cursor: pointer;
             margin-top: 0.5rem;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .close-btn {
             float: right;
             font-size: 1.5rem;
             cursor: pointer;
             color: #666;
+            -webkit-user-select: none;
+            user-select: none;
         }
         /* 管理员后台样式 */
         .admin-panel {
@@ -200,6 +218,8 @@
             border-radius: 4px;
             cursor: pointer;
             margin-right: 0.5rem;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .disable-btn {
             background-color: #e74c3c;
@@ -345,14 +365,26 @@
             .nav-container {
                 flex-direction: column;
                 gap: 1rem;
+                align-items: flex-start; /* 修复移动端导航排版 */
+            }
+            nav {
+                width: 100%;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                margin-top: 0.5rem;
             }
             nav a {
-                margin-left: 0.8rem;
-                margin-right: 0.8rem;
+                margin: 0.2rem 0.5rem;
+            }
+            #auth-area {
+                margin-top: 0.5rem;
             }
             .user-info {
-                flex-direction: column;
+                flex-direction: row; /* 修复移动端用户信息排版 */
+                flex-wrap: wrap;
                 gap: 0.5rem;
+                margin-top: 0.5rem;
             }
             .profile {
                 flex-direction: column;
@@ -385,15 +417,15 @@
                 <a href="#admin" id="admin-link" style="display: none;">管理员后台</a>
                 <!-- 登录按钮/用户信息 -->
                 <div id="auth-area">
-                    <button class="auth-btn" onclick="openModal('login')">登录</button>
-                    <button class="auth-btn" onclick="openModal('register')">注册</button>
+                    <button class="auth-btn" id="login-btn">登录</button>
+                    <button class="auth-btn" id="register-btn">注册</button>
                 </div>
                 <!-- 登录后显示的用户信息（默认隐藏） -->
                 <div id="user-area" class="user-info" style="display: none;">
                     <span>👤 <span id="username">用户名</span></span>
                     <span>积分：<span id="points">0</span> ✨</span>
-                    <button class="sign-btn" id="sign-btn" onclick="signIn()">今日签到</button>
-                    <button class="auth-btn" onclick="logout()">退出</button>
+                    <button class="sign-btn" id="sign-btn">今日签到</button>
+                    <button class="auth-btn" id="logout-btn">退出</button>
                 </div>
             </nav>
         </div>
@@ -402,17 +434,17 @@
     <!-- 登录/注册/找回密码弹窗 -->
     <div class="modal" id="auth-modal">
         <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <span class="close-btn" id="close-modal">&times;</span>
             <div class="modal-tabs">
-                <button class="tab-btn active" onclick="switchTab('login')">登录</button>
-                <button class="tab-btn" onclick="switchTab('register')">注册</button>
-                <button class="tab-btn" onclick="switchTab('find-pwd')">找回密码</button>
+                <button class="tab-btn active" data-tab="login">登录</button>
+                <button class="tab-btn" data-tab="register">注册</button>
+                <button class="tab-btn" data-tab="find-pwd">找回密码</button>
             </div>
             <!-- 登录表单 -->
             <div class="modal-form active" id="login-form">
                 <input type="email" id="login-email" placeholder="请输入邮箱">
                 <input type="password" id="login-pwd" placeholder="请输入密码">
-                <button onclick="login()">登录</button>
+                <button id="do-login">登录</button>
             </div>
             <!-- 注册表单（含验证码） -->
             <div class="modal-form" id="register-form">
@@ -420,16 +452,16 @@
                 <input type="email" id="register-email" placeholder="请输入邮箱">
                 <input type="password" id="register-pwd" placeholder="请输入密码（至少6位）">
                 <input type="text" id="register-code" placeholder="请输入邮箱验证码">
-                <button class="send-code-btn" onclick="sendRegisterCode()">发送验证码</button>
-                <button onclick="register()">注册</button>
+                <button class="send-code-btn" id="send-register-code">发送验证码</button>
+                <button id="do-register">注册</button>
             </div>
             <!-- 找回密码表单 -->
             <div class="modal-form" id="find-pwd-form">
                 <input type="email" id="find-email" placeholder="请输入注册邮箱">
                 <input type="text" id="find-code" placeholder="请输入邮箱验证码">
                 <input type="password" id="new-pwd" placeholder="请输入新密码（至少6位）">
-                <button class="send-code-btn" onclick="sendFindPwdCode()">发送验证码</button>
-                <button onclick="resetPassword()">重置密码</button>
+                <button class="send-code-btn" id="send-find-code">发送验证码</button>
+                <button id="do-reset-pwd">重置密码</button>
             </div>
         </div>
     </div>
@@ -438,7 +470,7 @@
     <div class="admin-panel" id="admin-panel">
         <div class="admin-header">
             <h2>🔧 管理员后台 - 用户管理</h2>
-            <button class="auth-btn" onclick="backToHome()">返回主页</button>
+            <button class="auth-btn" id="back-home">返回主页</button>
         </div>
         <table class="user-table">
             <thead>
@@ -550,14 +582,16 @@
         
         // 3. 管理员账号（固定，可自定义）
         const ADMIN_EMAIL = 'admin@example.com'; // 管理员邮箱（需先注册）
-        const ADMIN_PASSWORD = 'admin123456'; // 管理员密码（需先注册）
         
         // ===================== 全局变量 =====================
         let currentUser = null;
         let codeTimer = null; // 验证码倒计时器
 
         // ===================== 页面初始化 =====================
-        window.onload = async () => {
+        window.addEventListener('DOMContentLoaded', async () => {
+            // 绑定所有事件（替换onclick，解决移动端兼容）
+            bindEvents();
+            
             // 检查登录状态
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
@@ -571,53 +605,92 @@
                     document.getElementById('admin-link').style.display = 'inline-block';
                 }
             }
-            
-            // 初始化Supabase表（首次运行）
-            await initSupabaseTables();
-        };
+        });
 
-        // ===================== Supabase表初始化 =====================
-        async function initSupabaseTables() {
-            // 1. 创建users表（用户信息）
-            const { error: usersTableError } = await supabase.rpc('create_users_table');
-            if (usersTableError && !usersTableError.message.includes('already exists')) {
-                console.error('创建users表失败：', usersTableError);
-            }
+        // ===================== 事件绑定（核心修复：替换onclick） =====================
+        function bindEvents() {
+            // 登录/注册按钮
+            document.getElementById('login-btn').addEventListener('click', () => openModal('login'));
+            document.getElementById('login-btn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                openModal('login');
+            });
             
-            // 2. 创建sign_in表（签到记录）
-            const { error: signTableError } = await supabase.rpc('create_sign_in_table');
-            if (signTableError && !signTableError.message.includes('already exists')) {
-                console.error('创建sign_in表失败：', signTableError);
-            }
+            document.getElementById('register-btn').addEventListener('click', () => openModal('register'));
+            document.getElementById('register-btn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                openModal('register');
+            });
             
-            // 3. 创建verification_codes表（验证码记录）
-            const { error: codeTableError } = await supabase.rpc('create_verification_codes_table');
-            if (codeTableError && !codeTableError.message.includes('already exists')) {
-                console.error('创建verification_codes表失败：', codeTableError);
-            }
+            // 退出按钮
+            document.getElementById('logout-btn').addEventListener('click', logout);
+            document.getElementById('logout-btn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                logout();
+            });
+            
+            // 签到按钮
+            document.getElementById('sign-btn').addEventListener('click', signIn);
+            document.getElementById('sign-btn').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                signIn();
+            });
+            
+            // 弹窗关闭按钮
+            document.getElementById('close-modal').addEventListener('click', closeModal);
+            document.getElementById('close-modal').addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                closeModal();
+            });
+            
+            // 弹窗标签切换
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    switchTab(btn.dataset.tab);
+                });
+            });
+            
+            // 表单提交按钮
+            document.getElementById('do-login').addEventListener('click', login);
+            document.getElementById('do-register').addEventListener('click', register);
+            document.getElementById('do-reset-pwd').addEventListener('click', resetPassword);
+            
+            // 发送验证码按钮
+            document.getElementById('send-register-code').addEventListener('click', sendRegisterCode);
+            document.getElementById('send-find-code').addEventListener('click', sendFindPwdCode);
+            
+            // 管理员相关
+            document.getElementById('admin-link').addEventListener('click', showAdminPanel);
+            document.getElementById('back-home').addEventListener('click', hideAdminPanel);
         }
 
         // ===================== 弹窗控制 =====================
         function openModal(type) {
-            document.getElementById('auth-modal').style.display = 'flex';
+            const modal = document.getElementById('auth-modal');
+            modal.style.display = 'flex';
             switchTab(type);
+            // 阻止移动端滚动穿透
+            modal.addEventListener('touchmove', (e) => e.preventDefault());
         }
 
         function closeModal() {
-            document.getElementById('auth-modal').style.display = 'none';
+            const modal = document.getElementById('auth-modal');
+            modal.style.display = 'none';
             // 清空表单
             clearModalForms();
+            // 恢复滚动
+            modal.removeEventListener('touchmove', (e) => e.preventDefault());
         }
 
         function switchTab(type) {
             // 切换标签样式
-            const tabs = document.querySelectorAll('.tab-btn');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            document.querySelector(`.tab-btn[onclick="switchTab('${type}')"]`).classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.tab-btn[data-tab="${type}"]`).classList.add('active');
             
             // 切换表单
-            const forms = document.querySelectorAll('.modal-form');
-            forms.forEach(form => form.classList.remove('active'));
+            document.querySelectorAll('.modal-form').forEach(form => form.classList.remove('active'));
             document.getElementById(`${type}-form`).classList.add('active');
         }
 
@@ -663,7 +736,7 @@
             }
             
             // 倒计时
-            const btn = document.querySelector('.send-code-btn[onclick="sendRegisterCode()"]');
+            const btn = document.getElementById('send-register-code');
             startCodeTimer(btn);
             alert('验证码已发送至你的邮箱！');
         }
@@ -708,7 +781,7 @@
             }
             
             // 倒计时
-            const btn = document.querySelector('.send-code-btn[onclick="sendFindPwdCode()"]');
+            const btn = document.getElementById('send-find-code');
             startCodeTimer(btn);
             alert('验证码已发送至你的邮箱！');
         }
@@ -825,28 +898,32 @@
                 return;
             }
             
-            const { data: { user }, error } = await supabase.auth.signInWithPassword({
-                email,
-                password
-            });
-            
-            if (error) {
-                alert('登录失败：' + error.message);
-                return;
+            try {
+                const { data: { user }, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+                
+                if (error) {
+                    alert('登录失败：' + error.message);
+                    return;
+                }
+                
+                currentUser = user;
+                await loadUserInfo();
+                await checkSignStatus();
+                switchAuthUI(true);
+                
+                // 管理员判断
+                if (email === ADMIN_EMAIL) {
+                    document.getElementById('admin-link').style.display = 'inline-block';
+                }
+                
+                closeModal();
+                clearModalForms();
+            } catch (err) {
+                alert('登录异常：' + err.message);
             }
-            
-            currentUser = user;
-            await loadUserInfo();
-            await checkSignStatus();
-            switchAuthUI(true);
-            
-            // 管理员判断
-            if (email === ADMIN_EMAIL) {
-                document.getElementById('admin-link').style.display = 'inline-block';
-            }
-            
-            closeModal();
-            clearModalForms();
         }
 
         async function resetPassword() {
@@ -902,6 +979,208 @@
         }
 
         async function logout() {
-            const { error } = await supabase.auth.signOut();
+            try {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                    alert('退出失败：' + error.message);
+                    return;
+                }
+                
+                currentUser = null;
+                switchAuthUI(false);
+                document.getElementById('admin-link').style.display = 'none';
+                alert('退出成功！');
+            } catch (err) {
+                alert('退出异常：' + err.message);
+            }
+        }
+
+        // ===================== 用户信息/签到 =====================
+        async function loadUserInfo() {
+            const { data: userData, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+            
             if (error) {
-                alert('退出失败：' + error.message);
+                console.error('加载用户信息失败：', error);
+                return;
+            }
+            
+            document.getElementById('username').textContent = userData.username;
+            document.getElementById('points').textContent = userData.points;
+        }
+
+        async function checkSignStatus() {
+            const today = new Date().toISOString().split('T')[0];
+            const { data: signData } = await supabase
+                .from('sign_in')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .eq('sign_date', today)
+                .single();
+            
+            if (signData) {
+                document.getElementById('sign-btn').disabled = true;
+                document.getElementById('sign-btn').textContent = '今日已签到';
+            } else {
+                document.getElementById('sign-btn').disabled = false;
+                document.getElementById('sign-btn').textContent = '今日签到';
+            }
+        }
+
+        async function signIn() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            // 检查是否已签到
+            const { data: signData } = await supabase
+                .from('sign_in')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .eq('sign_date', today)
+                .single();
+            
+            if (signData) {
+                alert('今日已签到，无需重复签到！');
+                return;
+            }
+            
+            // 插入签到记录
+            const { error: signError } = await supabase
+                .from('sign_in')
+                .insert([{ user_id: currentUser.id, sign_date: today }]);
+            
+            if (signError) {
+                alert('签到失败：' + signError.message);
+                return;
+            }
+            
+            // 更新积分（+10）
+            const { data: userData } = await supabase
+                .from('users')
+                .select('points')
+                .eq('id', currentUser.id)
+                .single();
+            
+            const newPoints = userData.points + 10;
+            const { error: pointError } = await supabase
+                .from('users')
+                .update({ points: newPoints })
+                .eq('id', currentUser.id);
+            
+            if (pointError) {
+                alert('积分更新失败：' + pointError.message);
+                return;
+            }
+            
+            // 更新UI
+            document.getElementById('points').textContent = newPoints;
+            document.getElementById('sign-btn').disabled = true;
+            document.getElementById('sign-btn').textContent = '今日已签到';
+            alert('签到成功！获得10积分～');
+        }
+
+        // ===================== UI切换 =====================
+        function switchAuthUI(isLogin) {
+            if (isLogin) {
+                document.getElementById('auth-area').style.display = 'none';
+                document.getElementById('user-area').style.display = 'flex';
+            } else {
+                document.getElementById('auth-area').style.display = 'block';
+                document.getElementById('user-area').style.display = 'none';
+            }
+        }
+
+        // ===================== 管理员后台 =====================
+        async function showAdminPanel(e) {
+            e.preventDefault();
+            // 隐藏主内容，显示管理员面板
+            document.getElementById('main-container').style.display = 'none';
+            document.getElementById('admin-panel').style.display = 'block';
+            // 加载用户列表
+            await loadUserList();
+        }
+
+        function hideAdminPanel() {
+            // 显示主内容，隐藏管理员面板
+            document.getElementById('main-container').style.display = 'block';
+            document.getElementById('admin-panel').style.display = 'none';
+        }
+
+        async function loadUserList() {
+            const { data: users, error } = await supabase
+                .from('users')
+                .select('*');
+            
+            if (error) {
+                alert('加载用户列表失败：' + error.message);
+                return;
+            }
+            
+            const userList = document.getElementById('user-list');
+            userList.innerHTML = '';
+            
+            users.forEach(user => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${user.id}</td>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td>${user.points}</td>
+                    <td>${user.status === 1 ? '启用' : '禁用'}</td>
+                    <td>
+                        <button class="disable-btn" onclick="toggleUserStatus('${user.id}', ${user.status})">
+                            ${user.status === 1 ? '禁用' : '启用'}
+                        </button>
+                        <button class="delete-btn" onclick="deleteUser('${user.id}')">删除</button>
+                    </td>
+                `;
+                userList.appendChild(tr);
+            });
+        }
+
+        async function toggleUserStatus(userId, status) {
+            const newStatus = status === 1 ? 0 : 1;
+            const { error } = await supabase
+                .from('users')
+                .update({ status: newStatus })
+                .eq('id', userId);
+            
+            if (error) {
+                alert('修改用户状态失败：' + error.message);
+                return;
+            }
+            
+            alert(`用户已${newStatus === 1 ? '启用' : '禁用'}！`);
+            await loadUserList();
+        }
+
+        async function deleteUser(userId) {
+            if (!confirm('确定要删除该用户吗？此操作不可恢复！')) {
+                return;
+            }
+            
+            // 删除用户信息
+            const { error: userError } = await supabase
+                .from('users')
+                .delete()
+                .eq('id', userId);
+            
+            if (userError) {
+                alert('删除用户失败：' + userError.message);
+                return;
+            }
+            
+            // 删除签到记录
+            await supabase
+                .from('sign_in')
+                .delete()
+                .eq('user_id', userId);
+            
+            alert('用户删除成功！');
+            await loadUserList();
+        }
+    </script>
+</body>
+</html>
