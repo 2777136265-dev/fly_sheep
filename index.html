@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>我的个人学习主页 | 大学生</title>
     <style>
+        /* 基础样式（保留你原有样式） */
         * {
             margin: 0;
             padding: 0;
@@ -80,7 +81,7 @@
             background-color: #95a5a6;
             cursor: not-allowed;
         }
-        /* 登录弹窗 */
+        /* 登录/注册/找回密码弹窗 */
         .modal {
             position: fixed;
             top: 0;
@@ -144,19 +145,76 @@
             cursor: pointer;
             margin-top: 1rem;
         }
+        .send-code-btn {
+            width: 100%;
+            padding: 1rem;
+            background: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
         .close-btn {
             float: right;
             font-size: 1.5rem;
             cursor: pointer;
             color: #666;
         }
-        /* 主体内容 */
+        /* 管理员后台样式 */
+        .admin-panel {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 5%;
+            display: none;
+        }
+        .admin-panel.active {
+            display: block;
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .user-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .user-table th, .user-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #eaeaea;
+        }
+        .user-table th {
+            background-color: #2c3e50;
+            color: white;
+        }
+        .user-table button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        .disable-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .delete-btn {
+            background-color: #95a5a6;
+            color: white;
+        }
+        /* 主体内容（保留你原有样式） */
         .container {
             max-width: 1200px;
             margin: 2rem auto;
             padding: 0 5%;
         }
-        /* 个人介绍模块 */
         .profile {
             background: white;
             padding: 2rem;
@@ -198,7 +256,6 @@
             margin-right: 0.5rem;
             margin-bottom: 0.5rem;
         }
-        /* 学习资料模块 */
         .materials {
             background: white;
             padding: 2rem;
@@ -249,7 +306,6 @@
         .material-card a:hover {
             background-color: #3498db;
         }
-        /* 联系方式 */
         .contact {
             background: white;
             padding: 2rem;
@@ -277,7 +333,6 @@
             color: #3498db;
             font-size: 1.5rem;
         }
-        /* 页脚 */
         footer {
             text-align: center;
             padding: 2rem;
@@ -307,6 +362,10 @@
                 flex-direction: column;
                 gap: 1.5rem;
             }
+            .user-table th, .user-table td {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
         }
     </style>
     <!-- 引入图标库 -->
@@ -323,6 +382,7 @@
                 <a href="#profile">个人介绍</a>
                 <a href="#materials">学习资料</a>
                 <a href="#contact">联系方式</a>
+                <a href="#admin" id="admin-link" style="display: none;">管理员后台</a>
                 <!-- 登录按钮/用户信息 -->
                 <div id="auth-area">
                     <button class="auth-btn" onclick="openModal('login')">登录</button>
@@ -339,13 +399,14 @@
         </div>
     </header>
 
-    <!-- 登录/注册弹窗 -->
+    <!-- 登录/注册/找回密码弹窗 -->
     <div class="modal" id="auth-modal">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal()">&times;</span>
             <div class="modal-tabs">
                 <button class="tab-btn active" onclick="switchTab('login')">登录</button>
                 <button class="tab-btn" onclick="switchTab('register')">注册</button>
+                <button class="tab-btn" onclick="switchTab('find-pwd')">找回密码</button>
             </div>
             <!-- 登录表单 -->
             <div class="modal-form active" id="login-form">
@@ -353,18 +414,51 @@
                 <input type="password" id="login-pwd" placeholder="请输入密码">
                 <button onclick="login()">登录</button>
             </div>
-            <!-- 注册表单 -->
+            <!-- 注册表单（含验证码） -->
             <div class="modal-form" id="register-form">
                 <input type="text" id="register-name" placeholder="请输入用户名">
                 <input type="email" id="register-email" placeholder="请输入邮箱">
                 <input type="password" id="register-pwd" placeholder="请输入密码（至少6位）">
+                <input type="text" id="register-code" placeholder="请输入邮箱验证码">
+                <button class="send-code-btn" onclick="sendRegisterCode()">发送验证码</button>
                 <button onclick="register()">注册</button>
+            </div>
+            <!-- 找回密码表单 -->
+            <div class="modal-form" id="find-pwd-form">
+                <input type="email" id="find-email" placeholder="请输入注册邮箱">
+                <input type="text" id="find-code" placeholder="请输入邮箱验证码">
+                <input type="password" id="new-pwd" placeholder="请输入新密码（至少6位）">
+                <button class="send-code-btn" onclick="sendFindPwdCode()">发送验证码</button>
+                <button onclick="resetPassword()">重置密码</button>
             </div>
         </div>
     </div>
 
-    <!-- 主体内容 -->
-    <div class="container">
+    <!-- 管理员后台 -->
+    <div class="admin-panel" id="admin-panel">
+        <div class="admin-header">
+            <h2>🔧 管理员后台 - 用户管理</h2>
+            <button class="auth-btn" onclick="backToHome()">返回主页</button>
+        </div>
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>用户ID</th>
+                    <th>用户名</th>
+                    <th>邮箱</th>
+                    <th>积分</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="user-list">
+                <!-- 管理员后台用户列表 -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 主体内容（保留你原有内容） -->
+    <div class="container" id="main-container">
         <!-- 个人介绍 -->
         <section class="profile" id="profile">
             <img src="http://q1.qlogo.cn/g?b=qq&nk=2777136265&s=100" alt="个人头像" class="profile-img">
@@ -410,7 +504,6 @@
                     <p>近5年蓝桥杯省赛/国赛真题，包含C++/Python两种解法，附评分标准</p>
                     <a href="#" target="_blank">下载真题</a>
                 </div>
-                <!-- 可自行添加更多卡片 -->
             </div>
         </section>
 
@@ -445,29 +538,66 @@
     </footer>
 
     <script>
-        // 1. 初始化Supabase（替换成你的Project URL和anon密钥）
-        const supabaseUrl = '你的Supabase项目URL';
-        const supabaseKey = '你的Supabase anon密钥';
+        // ===================== 核心配置（替换为你的信息） =====================
+        // 1. Supabase配置
+        const supabaseUrl = '你的Supabase项目URL'; // 替换为实际URL
+        const supabaseKey = '你的Supabase anon密钥'; // 替换为实际密钥
         const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-        // 核心变量
+        
+        // 2. 邮件API配置
+        const mailApiUrl = 'https://api.ruojy.top/api/wx_mail/send';
+        const mailToken = '你的若智云TOKEN'; // 替换为实际TOKEN
+        
+        // 3. 管理员账号（固定，可自定义）
+        const ADMIN_EMAIL = 'admin@example.com'; // 管理员邮箱（需先注册）
+        const ADMIN_PASSWORD = 'admin123456'; // 管理员密码（需先注册）
+        
+        // ===================== 全局变量 =====================
         let currentUser = null;
+        let codeTimer = null; // 验证码倒计时器
 
-        // 2. 页面加载时检查登录状态
+        // ===================== 页面初始化 =====================
         window.onload = async () => {
+            // 检查登录状态
             const { data: { session } } = await supabase.auth.getSession();
             if (session) {
                 currentUser = session.user;
-                // 加载用户信息和积分
                 await loadUserInfo();
-                // 切换到登录后界面
-                switchAuthUI(true);
-                // 检查今日签到状态
                 await checkSignStatus();
+                switchAuthUI(true);
+                
+                // 检查是否是管理员
+                if (currentUser.email === ADMIN_EMAIL) {
+                    document.getElementById('admin-link').style.display = 'inline-block';
+                }
             }
+            
+            // 初始化Supabase表（首次运行）
+            await initSupabaseTables();
         };
 
-        // 3. 登录/注册弹窗控制
+        // ===================== Supabase表初始化 =====================
+        async function initSupabaseTables() {
+            // 1. 创建users表（用户信息）
+            const { error: usersTableError } = await supabase.rpc('create_users_table');
+            if (usersTableError && !usersTableError.message.includes('already exists')) {
+                console.error('创建users表失败：', usersTableError);
+            }
+            
+            // 2. 创建sign_in表（签到记录）
+            const { error: signTableError } = await supabase.rpc('create_sign_in_table');
+            if (signTableError && !signTableError.message.includes('already exists')) {
+                console.error('创建sign_in表失败：', signTableError);
+            }
+            
+            // 3. 创建verification_codes表（验证码记录）
+            const { error: codeTableError } = await supabase.rpc('create_verification_codes_table');
+            if (codeTableError && !codeTableError.message.includes('already exists')) {
+                console.error('创建verification_codes表失败：', codeTableError);
+            }
+        }
+
+        // ===================== 弹窗控制 =====================
         function openModal(type) {
             document.getElementById('auth-modal').style.display = 'flex';
             switchTab(type);
@@ -475,6 +605,8 @@
 
         function closeModal() {
             document.getElementById('auth-modal').style.display = 'none';
+            // 清空表单
+            clearModalForms();
         }
 
         function switchTab(type) {
@@ -482,182 +614,294 @@
             const tabs = document.querySelectorAll('.tab-btn');
             tabs.forEach(tab => tab.classList.remove('active'));
             document.querySelector(`.tab-btn[onclick="switchTab('${type}')"]`).classList.add('active');
+            
             // 切换表单
             const forms = document.querySelectorAll('.modal-form');
             forms.forEach(form => form.classList.remove('active'));
             document.getElementById(`${type}-form`).classList.add('active');
         }
 
-        // 4. 注册功能
+        function clearModalForms() {
+            // 清空所有表单
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-pwd').value = '';
+            document.getElementById('register-name').value = '';
+            document.getElementById('register-email').value = '';
+            document.getElementById('register-pwd').value = '';
+            document.getElementById('register-code').value = '';
+            document.getElementById('find-email').value = '';
+            document.getElementById('find-code').value = '';
+            document.getElementById('new-pwd').value = '';
+        }
+
+        // ===================== 验证码发送 =====================
+        async function sendRegisterCode() {
+            const email = document.getElementById('register-email').value.trim();
+            if (!email) {
+                alert('请输入邮箱！');
+                return;
+            }
+            
+            // 生成6位验证码
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            // 发送邮件
+            const sendResult = await sendMail(email, '用户注册验证码', `你的注册验证码是：${code}，5分钟内有效。`);
+            if (!sendResult) {
+                alert('验证码发送失败，请重试！');
+                return;
+            }
+            
+            // 保存验证码到Supabase
+            const { error } = await supabase
+                .from('verification_codes')
+                .insert([{ email, code, type: 'register', expire_at: new Date(Date.now() + 5 * 60 * 1000) }]);
+            
+            if (error) {
+                alert('验证码保存失败：' + error.message);
+                return;
+            }
+            
+            // 倒计时
+            const btn = document.querySelector('.send-code-btn[onclick="sendRegisterCode()"]');
+            startCodeTimer(btn);
+            alert('验证码已发送至你的邮箱！');
+        }
+
+        async function sendFindPwdCode() {
+            const email = document.getElementById('find-email').value.trim();
+            if (!email) {
+                alert('请输入邮箱！');
+                return;
+            }
+            
+            // 检查邮箱是否存在
+            const { data: user } = await supabase
+                .from('users')
+                .select('*')
+                .eq('email', email)
+                .single();
+            
+            if (!user) {
+                alert('该邮箱未注册！');
+                return;
+            }
+            
+            // 生成6位验证码
+            const code = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            // 发送邮件
+            const sendResult = await sendMail(email, '密码找回验证码', `你的密码找回验证码是：${code}，5分钟内有效。`);
+            if (!sendResult) {
+                alert('验证码发送失败，请重试！');
+                return;
+            }
+            
+            // 保存验证码到Supabase
+            const { error } = await supabase
+                .from('verification_codes')
+                .insert([{ email, code, type: 'find_pwd', expire_at: new Date(Date.now() + 5 * 60 * 1000) }]);
+            
+            if (error) {
+                alert('验证码保存失败：' + error.message);
+                return;
+            }
+            
+            // 倒计时
+            const btn = document.querySelector('.send-code-btn[onclick="sendFindPwdCode()"]');
+            startCodeTimer(btn);
+            alert('验证码已发送至你的邮箱！');
+        }
+
+        // 邮件发送核心函数
+        async function sendMail(to, subject, content) {
+            try {
+                const response = await fetch(mailApiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'accept': '*/*',
+                        'token': mailToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ to, subject, content })
+                });
+                
+                const result = await response.json();
+                return result.code === '200' && result.data;
+            } catch (error) {
+                console.error('邮件发送失败：', error);
+                return false;
+            }
+        }
+
+        // 验证码倒计时
+        function startCodeTimer(btn) {
+            let count = 60;
+            btn.disabled = true;
+            btn.textContent = `重新发送(${count}s)`;
+            
+            codeTimer = setInterval(() => {
+                count--;
+                btn.textContent = `重新发送(${count}s)`;
+                if (count <= 0) {
+                    clearInterval(codeTimer);
+                    btn.disabled = false;
+                    btn.textContent = '发送验证码';
+                }
+            }, 1000);
+        }
+
+        // ===================== 注册/登录/找回密码 =====================
         async function register() {
             const username = document.getElementById('register-name').value.trim();
             const email = document.getElementById('register-email').value.trim();
             const password = document.getElementById('register-pwd').value.trim();
-
-            if (!username || !email || !password) {
-                alert('请填写完整信息！');
+            const code = document.getElementById('register-code').value.trim();
+            
+            // 验证输入
+            if (!username || !email || !password || !code) {
+                alert('请填写所有字段！');
                 return;
             }
+            
             if (password.length < 6) {
                 alert('密码至少6位！');
                 return;
             }
-
-            // 注册账号
-            const { data: { user }, error } = await supabase.auth.signUp({
+            
+            // 验证验证码
+            const { data: codeData, error: codeError } = await supabase
+                .from('verification_codes')
+                .select('*')
+                .eq('email', email)
+                .eq('type', 'register')
+                .eq('code', code)
+                .gte('expire_at', new Date())
+                .single();
+            
+            if (codeError || !codeData) {
+                alert('验证码无效或已过期！');
+                return;
+            }
+            
+            // Supabase注册账号
+            const { data: { user }, error: authError } = await supabase.auth.signUp({
                 email,
                 password
             });
-
-            if (error) {
-                alert('注册失败：' + error.message);
+            
+            if (authError) {
+                alert('注册失败：' + authError.message);
                 return;
             }
-
-            // 创建用户数据（初始化积分0）
-            const { error: dbError } = await supabase
+            
+            // 保存用户信息
+            const { error: userError } = await supabase
                 .from('users')
-                .insert([{ id: user.id, username, points: 0 }]);
-
-            if (dbError) {
-                alert('用户数据创建失败：' + dbError.message);
+                .insert([{ id: user.id, username, email, points: 0, status: 1 }]);
+            
+            if (userError) {
+                alert('用户信息保存失败：' + userError.message);
                 return;
             }
-
+            
+            // 删除验证码
+            await supabase
+                .from('verification_codes')
+                .delete()
+                .eq('id', codeData.id);
+            
             alert('注册成功！请登录～');
             switchTab('login');
-            // 清空注册表单
-            document.getElementById('register-name').value = '';
-            document.getElementById('register-email').value = '';
-            document.getElementById('register-pwd').value = '';
+            clearModalForms();
         }
 
-        // 5. 登录功能
         async function login() {
             const email = document.getElementById('login-email').value.trim();
             const password = document.getElementById('login-pwd').value.trim();
-
+            
             if (!email || !password) {
                 alert('请填写邮箱和密码！');
                 return;
             }
-
+            
             const { data: { user }, error } = await supabase.auth.signInWithPassword({
                 email,
                 password
             });
-
+            
             if (error) {
                 alert('登录失败：' + error.message);
                 return;
             }
-
+            
             currentUser = user;
             await loadUserInfo();
             await checkSignStatus();
             switchAuthUI(true);
+            
+            // 管理员判断
+            if (email === ADMIN_EMAIL) {
+                document.getElementById('admin-link').style.display = 'inline-block';
+            }
+            
             closeModal();
-            // 清空登录表单
-            document.getElementById('login-email').value = '';
-            document.getElementById('login-pwd').value = '';
+            clearModalForms();
         }
 
-        // 6. 退出登录
+        async function resetPassword() {
+            const email = document.getElementById('find-email').value.trim();
+            const code = document.getElementById('find-code').value.trim();
+            const newPwd = document.getElementById('new-pwd').value.trim();
+            
+            // 验证输入
+            if (!email || !code || !newPwd) {
+                alert('请填写所有字段！');
+                return;
+            }
+            
+            if (newPwd.length < 6) {
+                alert('密码至少6位！');
+                return;
+            }
+            
+            // 验证验证码
+            const { data: codeData, error: codeError } = await supabase
+                .from('verification_codes')
+                .select('*')
+                .eq('email', email)
+                .eq('type', 'find_pwd')
+                .eq('code', code)
+                .gte('expire_at', new Date())
+                .single();
+            
+            if (codeError || !codeData) {
+                alert('验证码无效或已过期！');
+                return;
+            }
+            
+            // 重置密码
+            const { error } = await supabase.auth.updateUser({
+                password: newPwd
+            });
+            
+            if (error) {
+                alert('密码重置失败：' + error.message);
+                return;
+            }
+            
+            // 删除验证码
+            await supabase
+                .from('verification_codes')
+                .delete()
+                .eq('id', codeData.id);
+            
+            alert('密码重置成功！请重新登录～');
+            switchTab('login');
+            clearModalForms();
+        }
+
         async function logout() {
             const { error } = await supabase.auth.signOut();
             if (error) {
                 alert('退出失败：' + error.message);
-                return;
-            }
-            currentUser = null;
-            switchAuthUI(false);
-        }
-
-        // 7. 加载用户信息和积分
-        async function loadUserInfo() {
-            const { data, error } = await supabase
-                .from('users')
-                .select('username, points')
-                .eq('id', currentUser.id)
-                .single();
-
-            if (data) {
-                document.getElementById('username').textContent = data.username;
-                document.getElementById('points').textContent = data.points;
-            } else if (error) {
-                alert('加载用户信息失败：' + error.message);
-            }
-        }
-
-        // 8. 签到功能
-        async function signIn() {
-            if (!currentUser) {
-                alert('请先登录！');
-                return;
-            }
-
-            // 插入签到记录（每日只能签一次）
-            const today = new Date().toISOString().split('T')[0];
-            const { error } = await supabase
-                .from('sign_in')
-                .insert([{ user_id: currentUser.id, sign_date: today }]);
-
-            if (error) {
-                if (error.code === '23505') {
-                    alert('今日已签到！明天再来～');
-                } else {
-                    alert('签到失败：' + error.message);
-                }
-                return;
-            }
-
-            // 签到成功，增加10积分
-            const { error: pointError } = await supabase
-                .from('users')
-                .update({ points: supabase.raw('points + 10') })
-                .eq('id', currentUser.id);
-
-            if (pointError) {
-                alert('积分增加失败：' + pointError.message);
-                return;
-            }
-
-            // 刷新积分
-            await loadUserInfo();
-            // 禁用签到按钮
-            document.getElementById('sign-btn').disabled = true;
-            document.getElementById('sign-btn').textContent = '今日已签到';
-            alert('签到成功！获得10积分～');
-        }
-
-        // 9. 检查今日签到状态
-        async function checkSignStatus() {
-            const today = new Date().toISOString().split('T')[0];
-            const { data } = await supabase
-                .from('sign_in')
-                .select('*')
-                .eq('user_id', currentUser.id)
-                .eq('sign_date', today);
-
-            if (data.length > 0) {
-                document.getElementById('sign-btn').disabled = true;
-                document.getElementById('sign-btn').textContent = '今日已签到';
-            }
-        }
-
-        // 10. 切换登录/未登录UI
-        function switchAuthUI(isLogin) {
-            document.getElementById('auth-area').style.display = isLogin ? 'none' : 'block';
-            document.getElementById('user-area').style.display = isLogin ? 'flex' : 'none';
-        }
-
-        // 点击空白处关闭弹窗
-        window.onclick = function(e) {
-            const modal = document.getElementById('auth-modal');
-            if (e.target === modal) {
-                closeModal();
-            }
-        }
-    </script>
-</body>
-</html>
