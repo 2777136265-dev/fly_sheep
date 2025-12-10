@@ -46,6 +46,110 @@
         nav a:hover {
             color: #3498db;
         }
+        /* 登录/用户信息样式 */
+        .auth-btn {
+            padding: 0.5rem 1rem;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-left: 1rem;
+        }
+        .auth-btn:hover {
+            background-color: #2980b9;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .user-info span {
+            color: white;
+        }
+        .sign-btn {
+            padding: 0.5rem 1rem;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .sign-btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        /* 登录弹窗 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
+        .modal-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .modal-tabs button {
+            flex: 1;
+            padding: 0.8rem;
+            border: none;
+            background: #eaeaea;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .modal-tabs button.active {
+            background: #3498db;
+            color: white;
+        }
+        .modal-form {
+            display: none;
+        }
+        .modal-form.active {
+            display: block;
+        }
+        .modal-form input {
+            width: 100%;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+            outline: none;
+        }
+        .modal-form input:focus {
+            border-color: #3498db;
+        }
+        .modal-form button {
+            width: 100%;
+            padding: 1rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        .close-btn {
+            float: right;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
         /* 主体内容 */
         .container {
             max-width: 1200px;
@@ -191,6 +295,10 @@
                 margin-left: 0.8rem;
                 margin-right: 0.8rem;
             }
+            .user-info {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
             .profile {
                 flex-direction: column;
                 text-align: center;
@@ -203,6 +311,8 @@
     </style>
     <!-- 引入图标库 -->
     <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 引入Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
     <!-- 导航栏 -->
@@ -213,9 +323,45 @@
                 <a href="#profile">个人介绍</a>
                 <a href="#materials">学习资料</a>
                 <a href="#contact">联系方式</a>
+                <!-- 登录按钮/用户信息 -->
+                <div id="auth-area">
+                    <button class="auth-btn" onclick="openModal('login')">登录</button>
+                    <button class="auth-btn" onclick="openModal('register')">注册</button>
+                </div>
+                <!-- 登录后显示的用户信息（默认隐藏） -->
+                <div id="user-area" class="user-info" style="display: none;">
+                    <span>👤 <span id="username">用户名</span></span>
+                    <span>积分：<span id="points">0</span> ✨</span>
+                    <button class="sign-btn" id="sign-btn" onclick="signIn()">今日签到</button>
+                    <button class="auth-btn" onclick="logout()">退出</button>
+                </div>
             </nav>
         </div>
     </header>
+
+    <!-- 登录/注册弹窗 -->
+    <div class="modal" id="auth-modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div class="modal-tabs">
+                <button class="tab-btn active" onclick="switchTab('login')">登录</button>
+                <button class="tab-btn" onclick="switchTab('register')">注册</button>
+            </div>
+            <!-- 登录表单 -->
+            <div class="modal-form active" id="login-form">
+                <input type="email" id="login-email" placeholder="请输入邮箱">
+                <input type="password" id="login-pwd" placeholder="请输入密码">
+                <button onclick="login()">登录</button>
+            </div>
+            <!-- 注册表单 -->
+            <div class="modal-form" id="register-form">
+                <input type="text" id="register-name" placeholder="请输入用户名">
+                <input type="email" id="register-email" placeholder="请输入邮箱">
+                <input type="password" id="register-pwd" placeholder="请输入密码（至少6位）">
+                <button onclick="register()">注册</button>
+            </div>
+        </div>
+    </div>
 
     <!-- 主体内容 -->
     <div class="container">
@@ -297,5 +443,221 @@
         <p>© 2025 我的个人学习主页 | 大学生学习分享平台</p>
         <p style="margin-top: 0.5rem; font-size: 0.9rem;">愿我们都在学习的路上不断进步～</p>
     </footer>
+
+    <script>
+        // 1. 初始化Supabase（替换成你的Project URL和anon密钥）
+        const supabaseUrl = '你的Supabase项目URL';
+        const supabaseKey = '你的Supabase anon密钥';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // 核心变量
+        let currentUser = null;
+
+        // 2. 页面加载时检查登录状态
+        window.onload = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                currentUser = session.user;
+                // 加载用户信息和积分
+                await loadUserInfo();
+                // 切换到登录后界面
+                switchAuthUI(true);
+                // 检查今日签到状态
+                await checkSignStatus();
+            }
+        };
+
+        // 3. 登录/注册弹窗控制
+        function openModal(type) {
+            document.getElementById('auth-modal').style.display = 'flex';
+            switchTab(type);
+        }
+
+        function closeModal() {
+            document.getElementById('auth-modal').style.display = 'none';
+        }
+
+        function switchTab(type) {
+            // 切换标签样式
+            const tabs = document.querySelectorAll('.tab-btn');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`.tab-btn[onclick="switchTab('${type}')"]`).classList.add('active');
+            // 切换表单
+            const forms = document.querySelectorAll('.modal-form');
+            forms.forEach(form => form.classList.remove('active'));
+            document.getElementById(`${type}-form`).classList.add('active');
+        }
+
+        // 4. 注册功能
+        async function register() {
+            const username = document.getElementById('register-name').value.trim();
+            const email = document.getElementById('register-email').value.trim();
+            const password = document.getElementById('register-pwd').value.trim();
+
+            if (!username || !email || !password) {
+                alert('请填写完整信息！');
+                return;
+            }
+            if (password.length < 6) {
+                alert('密码至少6位！');
+                return;
+            }
+
+            // 注册账号
+            const { data: { user }, error } = await supabase.auth.signUp({
+                email,
+                password
+            });
+
+            if (error) {
+                alert('注册失败：' + error.message);
+                return;
+            }
+
+            // 创建用户数据（初始化积分0）
+            const { error: dbError } = await supabase
+                .from('users')
+                .insert([{ id: user.id, username, points: 0 }]);
+
+            if (dbError) {
+                alert('用户数据创建失败：' + dbError.message);
+                return;
+            }
+
+            alert('注册成功！请登录～');
+            switchTab('login');
+            // 清空注册表单
+            document.getElementById('register-name').value = '';
+            document.getElementById('register-email').value = '';
+            document.getElementById('register-pwd').value = '';
+        }
+
+        // 5. 登录功能
+        async function login() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-pwd').value.trim();
+
+            if (!email || !password) {
+                alert('请填写邮箱和密码！');
+                return;
+            }
+
+            const { data: { user }, error } = await supabase.auth.signInWithPassword({
+                email,
+                password
+            });
+
+            if (error) {
+                alert('登录失败：' + error.message);
+                return;
+            }
+
+            currentUser = user;
+            await loadUserInfo();
+            await checkSignStatus();
+            switchAuthUI(true);
+            closeModal();
+            // 清空登录表单
+            document.getElementById('login-email').value = '';
+            document.getElementById('login-pwd').value = '';
+        }
+
+        // 6. 退出登录
+        async function logout() {
+            const { error } = await supabase.auth.signOut();
+            if (error) {
+                alert('退出失败：' + error.message);
+                return;
+            }
+            currentUser = null;
+            switchAuthUI(false);
+        }
+
+        // 7. 加载用户信息和积分
+        async function loadUserInfo() {
+            const { data, error } = await supabase
+                .from('users')
+                .select('username, points')
+                .eq('id', currentUser.id)
+                .single();
+
+            if (data) {
+                document.getElementById('username').textContent = data.username;
+                document.getElementById('points').textContent = data.points;
+            } else if (error) {
+                alert('加载用户信息失败：' + error.message);
+            }
+        }
+
+        // 8. 签到功能
+        async function signIn() {
+            if (!currentUser) {
+                alert('请先登录！');
+                return;
+            }
+
+            // 插入签到记录（每日只能签一次）
+            const today = new Date().toISOString().split('T')[0];
+            const { error } = await supabase
+                .from('sign_in')
+                .insert([{ user_id: currentUser.id, sign_date: today }]);
+
+            if (error) {
+                if (error.code === '23505') {
+                    alert('今日已签到！明天再来～');
+                } else {
+                    alert('签到失败：' + error.message);
+                }
+                return;
+            }
+
+            // 签到成功，增加10积分
+            const { error: pointError } = await supabase
+                .from('users')
+                .update({ points: supabase.raw('points + 10') })
+                .eq('id', currentUser.id);
+
+            if (pointError) {
+                alert('积分增加失败：' + pointError.message);
+                return;
+            }
+
+            // 刷新积分
+            await loadUserInfo();
+            // 禁用签到按钮
+            document.getElementById('sign-btn').disabled = true;
+            document.getElementById('sign-btn').textContent = '今日已签到';
+            alert('签到成功！获得10积分～');
+        }
+
+        // 9. 检查今日签到状态
+        async function checkSignStatus() {
+            const today = new Date().toISOString().split('T')[0];
+            const { data } = await supabase
+                .from('sign_in')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .eq('sign_date', today);
+
+            if (data.length > 0) {
+                document.getElementById('sign-btn').disabled = true;
+                document.getElementById('sign-btn').textContent = '今日已签到';
+            }
+        }
+
+        // 10. 切换登录/未登录UI
+        function switchAuthUI(isLogin) {
+            document.getElementById('auth-area').style.display = isLogin ? 'none' : 'block';
+            document.getElementById('user-area').style.display = isLogin ? 'flex' : 'none';
+        }
+
+        // 点击空白处关闭弹窗
+        window.onclick = function(e) {
+            const modal = document.getElementById('auth-modal');
+            if (e.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
 </body>
 </html>
