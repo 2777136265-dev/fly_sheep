@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的个人学习主页 | 大学生</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        /* 导航栏 */
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 5%;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            margin-left: 1.5rem;
+            transition: color 0.3s;
+        }
+        nav a:hover {
+            color: #3498db;
+        }
+        /* 主体内容 */
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 5%;
+        }
+        /* 个人介绍模块 */
+        .profile {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            align-items: center;
+        }
+        .profile-img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid #eaeaea;
+        }
+        .profile-info {
+            flex: 1;
+            min-width: 300px;
+        }
+        .profile-info h2 {
+            color: #2c3e50;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+        .profile-info p {
+            margin-bottom: 0.8rem;
+            color: #666;
+        }
+        .tag {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        /* 学习资料模块 */
+        .materials {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+        }
+        .materials h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #3498db;
+        }
+        .material-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .material-card {
+            border: 1px solid #eaeaea;
+            border-radius: 8px;
+            padding: 1.2rem;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .material-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .material-card h3 {
+            color: #3498db;
+            margin-bottom: 0.8rem;
+            font-size: 1.1rem;
+        }
+        .material-card p {
+            color: #666;
+            margin-bottom: 1rem;
+            font-size: 0.95rem;
+        }
+        .material-card a {
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            background-color: #2c3e50;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .material-card a:hover {
+            background-color: #3498db;
+        }
+        /* 联系方式 */
+        .contact {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .contact h2 {
+            color: #2c3e50;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #3498db;
+        }
+        .contact-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.1rem;
+        }
+        .contact-item i {
+            color: #3498db;
+            font-size: 1.5rem;
+        }
+        /* 页脚 */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background-color: #2c3e50;
+            color: white;
+            margin-top: 2rem;
+        }
+        /* 适配移动端 */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            nav a {
+                margin-left: 0.8rem;
+                margin-right: 0.8rem;
+            }
+            .profile {
+                flex-direction: column;
+                text-align: center;
+            }
+            .contact-info {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+        }
+    </style>
+    <!-- 引入图标库 -->
+    <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <header>
+        <div class="nav-container">
+            <div class="logo">我的学习主页</div>
+            <nav>
+                <a href="#profile">个人介绍</a>
+                <a href="#materials">学习资料</a>
+                <a href="#contact">联系方式</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 主体内容 -->
+    <div class="container">
+        <!-- 个人介绍 -->
+        <section class="profile" id="profile">
+            <img src="https://via.placeholder.com/150" alt="个人头像" class="profile-img">
+            <div class="profile-info">
+                <h2>XX大学 | 计算机科学与技术专业</h2>
+                <p>👋 大家好！我是一名大二学生，主攻前端开发/算法/人工智能（可修改），热爱学习和分享，希望通过这个主页和大家交流学习心得，共享优质学习资源～</p>
+                <p>📚 擅长领域：HTML/CSS/JavaScript、Python、数据结构与算法</p>
+                <p>🎯 近期目标：备战蓝桥杯、学习React框架、提升编程实战能力</p>
+                <div>
+                    <span class="tag">计算机专业</span>
+                    <span class="tag">学习分享</span>
+                    <span class="tag">前端开发</span>
+                    <span class="tag">算法刷题</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 学习资料分享 -->
+        <section class="materials" id="materials">
+            <h2>📖 学习资料分享</h2>
+            <div class="material-list">
+                <!-- 资料卡片1 -->
+                <div class="material-card">
+                    <h3>数据结构与算法笔记（完整版）</h3>
+                    <p>包含链表、树、排序算法、动态规划等核心知识点，附刷题思路和例题解析</p>
+                    <a href="#" target="_blank">下载PDF</a>
+                </div>
+                <!-- 资料卡片2 -->
+                <div class="material-card">
+                    <h3>Python入门到实战教程</h3>
+                    <p>适合零基础，涵盖基础语法、爬虫、数据分析、小项目实战（附源码）</p>
+                    <a href="#" target="_blank">查看教程</a>
+                </div>
+                <!-- 资料卡片3 -->
+                <div class="material-card">
+                    <h3>前端面试高频考点整理</h3>
+                    <p>HTML/CSS/JS核心考点、浏览器原理、框架面试题，附参考答案</p>
+                    <a href="#" target="_blank">获取资料</a>
+                </div>
+                <!-- 资料卡片4 -->
+                <div class="material-card">
+                    <h3>蓝桥杯历年真题及解析</h3>
+                    <p>近5年蓝桥杯省赛/国赛真题，包含C++/Python两种解法，附评分标准</p>
+                    <a href="#" target="_blank">下载真题</a>
+                </div>
+                <!-- 可自行添加更多卡片 -->
+            </div>
+        </section>
+
+        <!-- 联系方式 -->
+        <section class="contact" id="contact">
+            <h2>📞 联系方式</h2>
+            <div class="contact-info">
+                <div class="contact-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>邮箱：123456@xxx.edu.cn</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-wechat"></i>
+                    <span>微信：xxxxxx（备注：学习交流）</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-github"></i>
+                    <span>GitHub：github.com/你的用户名</span>
+                </div>
+                <div class="contact-item">
+                    <i class="fas fa-qq"></i>
+                    <span>QQ：123456789</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 页脚 -->
+    <footer>
+        <p>© 2025 我的个人学习主页 | 大学生学习分享平台</p>
+        <p style="margin-top: 0.5rem; font-size: 0.9rem;">愿我们都在学习的路上不断进步～</p>
+    </footer>
+</body>
+</html>
