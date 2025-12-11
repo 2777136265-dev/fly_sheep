@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生态学习资源分享平台</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="logo">
+            <<i class="fas fa-leaf"></</i>
+            <h1>生态资源分享</h1>
+        </div>
+        <div class="nav-menu">
+            <a href="#profile" class="nav-link">个人中心</a>
+            <a href="#resource-list" class="nav-link">资源列表</a>
+            <a href="#exchange" class="nav-link">积分兑换</a>
+            <a href="#about" class="nav-link">关于平台</a>
+            <button id="admin-link" class="admin-btn" style="display: none;">管理员后台</button>
+        </div>
+        <div class="user-area" id="auth-area">
+            <button id="login-btn" class="auth-btn">登录</button>
+            <button id="register-btn" class="auth-btn">注册</button>
+        </div>
+        <div class="user-area" id="user-area" style="display: none;">
+            <span class="user-info">
+                <img src="https://q1.qlogo.cn/g?b=qq&nk=2777136265&s=640" alt="用户头像" class="user-avatar-small" id="user-avatar-small">
+                <span id="username">用户名</span>
+                <span class="points"><<i class="fas fa-seedling"></</i> 积分: <span id="points">0</span></span>
+            </span>
+            <button id="sign-btn" class="sign-btn">今日签到</button>
+            <button id="logout-btn" class="auth-btn">退出</button>
+        </div>
+    </nav>
+
+    <!-- 个人中心 -->
+    <section id="profile" class="profile-section">
+        <div class="profile-card">
+            <img src="https://q1.qlogo.cn/g?b=qq&nk=2777136265&s=640" alt="用户头像" class="profile-img" id="user-avatar">
+            <div class="profile-info">
+                <h2 id="profile-username">未登录用户</h2>
+                <p class="profile-desc">登录后可上传资源、累计积分、参与互动～</p>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">累计签到</span>
+                        <span id="sign-count">0</span> 天
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">上传资源</span>
+                        <span id="upload-count">0</span> 个
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">当前积分</span>
+                        <span id="profile-points">0</span> 分
+                    </div>
+                </div>
+                <button id="upload-resource-btn" class="upload-btn" style="display: none;">
+                    <<i class="fas fa-upload"></</i> 上传资源
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 搜索栏 -->
+    <section class="search-section">
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="搜索资源关键词/分类...">
+            <button id="search-btn"><<i class="fas fa-search"></</i> 搜索</button>
+        </div>
+        <div class="filter-tags">
+            <span class="filter-tag active" data-tag="all">全部</span>
+            <span class="filter-tag" data-tag="文献">研究文献</span>
+            <span class="filter-tag" data-tag="教程">学习教程</span>
+            <span class="filter-tag" data-tag="数据">生态数据</span>
+            <span class="filter-tag" data-tag="工具">分析工具</span>
+        </div>
+    </section>
+
+    <!-- 资源列表区 -->
+    <section id="resource-list" class="resource-section">
+        <h2 class="section-title">最新资源</h2>
+        <div class="resource-grid" id="resource-container">
+            <!-- 资源卡片由JS动态生成 -->
+            <div class="empty-state">
+                <<i class="fas fa-folder-open"></</i>
+                <p>暂无资源，登录后可上传分享</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 积分兑换区 -->
+    <section id="exchange" class="exchange-section">
+        <h2 class="section-title">积分兑换</h2>
+        <div class="exchange-grid">
+            <div class="exchange-card">
+                <<i class="fas fa-book"></</i>
+                <h3>专属文献权限</h3>
+                <p>50积分兑换</p>
+                <button class="exchange-btn">立即兑换</button>
+            </div>
+            <div class="exchange-card">
+                <<i class="fas fa-cloud-download-alt"></</i>
+                <h3>批量下载权限</h3>
+                <p>100积分兑换</p>
+                <button class="exchange-btn">立即兑换</button>
+            </div>
+            <div class="exchange-card">
+                <<i class="fas fa-star"></</i>
+                <h3>平台认证标识</h3>
+                <p>200积分兑换</p>
+                <button class="exchange-btn">立即兑换</button>
+            </div>
+            <div class="exchange-card">
+                <<i class="fas fa-tools"></</i>
+                <h3>数据分析工具</h3>
+                <p>150积分兑换</p>
+                <button class="exchange-btn">立即兑换</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于平台 -->
+    <section id="about" class="about-section">
+        <h2 class="section-title">关于我们</h2>
+        <div class="about-content">
+            <p>本平台是面向生态学学习者的资源分享社区，旨在促进生态学科研与学习资源的交流共享。</p>
+            <p>用户可通过签到、上传资源、评论互动获取积分，积分可兑换高级权限和实用工具。</p>
+            <p>平台愿景：打造一个开放、互助、专业的生态学学习交流生态。</p>
+        </div>
+        <div class="contact-info">
+            <h3>联系我们</h3>
+            <p><<i class="fas fa-envelope"></</i> 邮箱：2777136265@qq.com</p>
+            <p><<i class="fas fa-github"></</i> GitHub：github.com/2777136265-dev</p>
+        </div>
+    </section>
+
+    <!-- 管理员面板（默认隐藏） -->
+    <div id="admin-panel" class="admin-panel">
+        <div class="admin-header">
+            <h2>管理员后台</h2>
+            <button id="back-home" class="back-btn">返回前台</button>
+        </div>
+        <div class="admin-tabs">
+            <button class="admin-tab active" data-tab="user">用户管理</button>
+            <button class="admin-tab" data-tab="resource">资源管理</button>
+            <button class="admin-tab" data-tab="system">系统设置</button>
+        </div>
+        <div class="admin-content">
+            <!-- 用户管理 -->
+            <div class="admin-tab-content active" id="user-tab">
+                <h3>用户列表</h3>
+                <table id="user-list" class="admin-table">
+                    <thead>
+                        <tr>
+                            <<th>ID</</th>
+                            <<th>用户名</</th>
+                            <<th>邮箱</</th>
+                            <<th>积分</</th>
+                            <<th>状态</</th>
+                            <<th>操作</</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="6">加载中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 资源管理 -->
+            <div class="admin-tab-content" id="resource-tab">
+                <h3>资源列表</h3>
+                <table id="resource-admin-list" class="admin-table">
+                    <thead>
+                        <tr>
+                            <<th>ID</</th>
+                            <<th>标题</</th>
+                            <<th>分类</</th>
+                            <<th>上传者</</th>
+                            <<th>操作</</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="5">加载中...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- 系统设置 -->
+            <div class="admin-tab-content" id="system-tab">
+                <h3>系统设置</h3>
+                <div class="setting-item">
+                    <label>邮箱验证码功能</label>
+                    <label class="switch">
+                        <input type="checkbox" id="email-verification-switch">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <label>签到积分奖励</label>
+                    <input type="number" id="sign-points" value="10" min="1">
+                </div>
+                <div class="setting-item">
+                    <label>上传资源积分奖励</label>
+                    <input type="number" id="upload-points" value="5" min="1">
+                </div>
+                <button id="save-settings" class="save-btn">保存设置</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录注册弹窗 -->
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-tabs">
+                <button class="modal-tab active" data-tab="login">登录</button>
+                <button class="modal-tab" data-tab="register">注册</button>
+            </div>
+            <div class="modal-form active" id="login-form">
+                <input type="email" id="login-email" placeholder="请输入邮箱" required>
+                <input type="password" id="login-pwd" placeholder="请输入密码" required>
+                <button id="do-login">登录</button>
+            </div>
+            <div class="modal-form" id="register-form">
+                <input type="text" id="register-name" placeholder="请输入用户名" required>
+                <input type="email" id="register-email" placeholder="请输入邮箱" required>
+                <input type="password" id="register-pwd" placeholder="请输入密码（至少6位）" required>
+                <div class="code-input">
+                    <input type="text" id="register-code" placeholder="请输入验证码">
+                    <button id="send-register-code">发送验证码</button>
+                </div>
+                <button id="do-register">注册</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 资源上传弹窗 -->
+    <div id="upload-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3>上传资源</h3>
+            <div class="modal-form">
+                <input type="text" id="resource-title" placeholder="资源标题" required>
+                <select id="resource-category" required>
+                    <option value="">选择分类</option>
+                    <option value="文献">研究文献</option>
+                    <option value="教程">学习教程</option>
+                    <option value="数据">生态数据</option>
+                    <option value="工具">分析工具</option>
+                </select>
+                <textarea id="resource-desc" placeholder="资源描述" rows="3"></textarea>
+                <input type="url" id="resource-link" placeholder="资源链接（网盘/官网）" required>
+                <button id="do-upload">上传资源</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>© 2025 生态学习资源分享平台 | 大学生学习交流社区</p>
+            <p>愿我们都在学习的路上不断进步～</p>
+        </div>
+    </footer>
+
+    <!-- 引入JS文件 -->
+    <script src="js/main.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/admin.js"></script>
+    <script src="js/resource.js"></script>
+</body>
+</html>
