@@ -12,6 +12,14 @@ body {
     color: #333;
     line-height: 1.6;
 }
+
+.modal-form {
+  display: none; /* 默认隐藏所有表单 */
+}
+.modal-form.active {
+  display: block; /* 仅显示active的表单 */
+}
+
 /* 导航栏 */
 header {
     background-color: #2c3e50;
