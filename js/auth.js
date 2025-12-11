@@ -3,6 +3,30 @@ const mailApiUrl = '/api/wx_mail/send'; // Netlify代理的邮件接口地址
 const mailToken = 'oqrUZ6_DEc0gc4YBGvRlygSCiHY4'; // 你的邮件接口token
 let emailVerificationEnabled = true; // 邮箱验证码开关状态
 
+// 标签页切换
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    // 移除所有标签的active类
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    // 给当前点击的标签添加active类
+    this.classList.add('active');
+    
+    // 隐藏所有表单，显示对应标签的表单
+    const targetTab = this.getAttribute('data-tab');
+    document.querySelectorAll('.modal-form').forEach(form => {
+      form.classList.remove('active');
+      form.style.display = 'none';
+    });
+    document.getElementById(`${targetTab}-form`).classList.add('active');
+    document.getElementById(`${targetTab}-form`).style.display = 'block';
+  });
+});
+
+// 关闭弹窗
+document.getElementById('close-modal').addEventListener('click', function() {
+  document.getElementById('auth-modal').style.display = 'none';
+});
+
 // 页面加载完成后绑定事件
 window.addEventListener('DOMContentLoaded', () => {
     bindAuthEvents();
