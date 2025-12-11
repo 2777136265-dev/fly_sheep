@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员登录</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="admin-login-container">
+        <h1>管理员登录</h1>
+        <div class="login-form">
+            <input type="text" id="admin-username" placeholder="管理员账号" value="admin" readonly>
+            <input type="password" id="admin-password" placeholder="管理员密码">
+            <button id="admin-login-btn">登录</button>
+            <p id="login-error" class="error-message"></p>
+        </div>
+    </div>
+
+    <script>
+        // Supabase配置
+        const supabaseUrl = 'https://neflfdfpzyjookonmleo.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5lZmxmZGZwenlqb29rb25tbGVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzNzQxMTUsImV4cCI6MjA4MDk1MDExNX0.z944F1VmJO9ro-1iDtB9HD_1NVThzz7mzqSX0IQqj68';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // 默认管理员账号（固定为admin）
+        const DEFAULT_ADMIN_USERNAME = 'admin';
+        // 默认管理员密码（可自行修改）
+        const DEFAULT_ADMIN_PASSWORD = 'admin123';
+
+        // 登录按钮事件
+        document.getElementById('admin-login-btn').addEventListener('click', async () => {
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+            const errorEl = document.getElementById('login-error');
+
+            // 验证账号密码
+            if (username !== DEFAULT_ADMIN_USERNAME) {
+                errorEl.textContent = '管理员账号错误';
+                return;
+            }
+            if (password !== DEFAULT_ADMIN_PASSWORD) {
+                errorEl.textContent = '管理员密码错误';
+                return;
+            }
+
+            // 登录成功后跳转到管理员后台（通过主页跳转避免404）
+            window.location.href = '/?admin=1';
+        });
+    </script>
+
+    <style>
+        .admin-login-container {
+            max-width: 400px;
+            margin: 5rem auto;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .login-form input {
+            width: 100%;
+            padding: 1rem;
+            margin: 0.8rem 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .login-form button {
+            width: 100%;
+            padding: 1rem;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 1rem;
+        }
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 1rem;
+        }
+    </style>
+</body>
+</html>
