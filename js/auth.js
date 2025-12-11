@@ -193,24 +193,40 @@ async function sendFindPwdCode() {
 // 修复后的 sendMail 函数（重点检查 headers）
 async function sendMail(to, subject, content) {
   try {
-    const response = await fetch(mailApiUrl, {
+    // 严格对齐手动测试的请求参数
+    const requestBody = {
+      "to": to.trim(), // 去除邮箱空格
+      "subject": subject,
+      "content": content
+    };
+    console.log('邮件请求参数：', requestBody); // 打印参数，方便核对
+    
+    // 关键修改：用 window. 访问全局变量
+    const response = await fetch(window.mailApiUrl, {
       method: 'POST',
       headers: {
         'accept': '*/*',
-        'token': 'oqrUZ6_DEc0gc4YBGvRlygSCiHY4', // 必须和手动测试一致
+        'token': window.mailToken, // 全局token
         'Content-Type': 'application/json',
-        // 新增：避免 OPTIONS 预检失败（部分 API 要求）
-        'Access-Control-Allow-Origin': '*'
+        'Cache-Control': 'no-cache' // 避免缓存导致的问题
       },
-      body: JSON.stringify({ to, subject, content }),
-      // 新增：允许跨域携带凭证（若 API 需验证）
-      credentials: 'omit'
+      body: JSON.stringify(requestBody),
+      credentials: 'omit' // 禁用凭证，避免干扰
     });
+    
     const result = await response.json();
-    console.log('邮件接口返回：', result); // 新增日志，方便排查
-    return result.code === '200' && result.data;
+    console.log('邮件接口返回：', result); // 打印返回结果
+    
+    // 兼容不同的返回格式（有的API用 code，有的用 status）
+    if (result.code === '200' || result.status === 200) {
+      return true;
+    } else {
+      alert('邮件发送失败：' + (result.msg || result.message || '未知错误'));
+      return false;
+    }
   } catch (error) {
-    console.error('邮件发送失败：', error); // 打印具体错误
+    console.error('邮件发送异常：', error);
+    alert('邮件发送失败：' + error.message);
     return false;
   }
 }
