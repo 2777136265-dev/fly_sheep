@@ -1,3 +1,8 @@
+// 全局变量定义（解决跨文件访问问题）
+const mailApiUrl = '/api/wx_mail/send'; // Netlify代理的邮件接口地址
+const mailToken = 'oqrUZ6_DEc0gc4YBGvRlygSCiHY4'; // 你的邮件接口token
+let emailVerificationEnabled = true; // 邮箱验证码开关状态
+
 // 页面加载完成后绑定事件
 window.addEventListener('DOMContentLoaded', () => {
     bindAuthEvents();
@@ -101,15 +106,21 @@ function clearModalForms() {
 
 // 验证码发送
 async function sendRegisterCode() {
-    // 如果未启用邮箱验证码，直接跳过
+    // 验证验证码开关状态
     if (!emailVerificationEnabled) {
         alert('邮箱验证码功能已关闭');
         return;
     }
     
     const email = document.getElementById('register-email').value.trim();
+    // 邮箱格式校验
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
         alert('请输入邮箱！');
+        return;
+    }
+    if (!emailRegex.test(email)) {
+        alert('邮箱格式不正确！');
         return;
     }
     
@@ -124,7 +135,7 @@ async function sendRegisterCode() {
     }
     
     // 保存验证码到Supabase
-    const { error } = await supabase
+    const { error } = await window.supabase
         .from('verification_codes')
         .insert([{ email, code, type: 'register', expire_at: new Date(Date.now() + 5 * 60 * 1000) }]);
     
@@ -140,20 +151,26 @@ async function sendRegisterCode() {
 }
 
 async function sendFindPwdCode() {
-    // 如果未启用邮箱验证码，直接跳过
+    // 验证验证码开关状态
     if (!emailVerificationEnabled) {
         alert('邮箱验证码功能已关闭');
         return;
     }
     
     const email = document.getElementById('find-email').value.trim();
+    // 邮箱格式校验
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
         alert('请输入邮箱！');
         return;
     }
+    if (!emailRegex.test(email)) {
+        alert('邮箱格式不正确！');
+        return;
+    }
     
     // 检查邮箱是否存在
-    const { data: user } = await supabase
+    const { data: user } = await window.supabase
         .from('users')
         .select('*')
         .eq('email', email)
@@ -175,7 +192,7 @@ async function sendFindPwdCode() {
     }
     
     // 保存验证码到Supabase
-    const { error } = await supabase
+    const { error } = await window.supabase
         .from('verification_codes')
         .insert([{ email, code, type: 'find_pwd', expire_at: new Date(Date.now() + 5 * 60 * 1000) }]);
     
@@ -190,45 +207,46 @@ async function sendFindPwdCode() {
     alert('验证码已发送至你的邮箱！');
 }
 
-// 修复后的 sendMail 函数（重点检查 headers）
+// 邮件发送核心函数（修复变量作用域+完善日志）
 async function sendMail(to, subject, content) {
-  try {
-    // 严格对齐手动测试的请求参数
-    const requestBody = {
-      "to": to.trim(), // 去除邮箱空格
-      "subject": subject,
-      "content": content
-    };
-    console.log('邮件请求参数：', requestBody); // 打印参数，方便核对
-    
-    // 关键修改：用 window. 访问全局变量
-    const response = await fetch(window.mailApiUrl, {
-      method: 'POST',
-      headers: {
-        'accept': '*/*',
-        'token': window.mailToken, // 全局token
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache' // 避免缓存导致的问题
-      },
-      body: JSON.stringify(requestBody),
-      credentials: 'omit' // 禁用凭证，避免干扰
-    });
-    
-    const result = await response.json();
-    console.log('邮件接口返回：', result); // 打印返回结果
-    
-    // 兼容不同的返回格式（有的API用 code，有的用 status）
-    if (result.code === '200' || result.status === 200) {
-      return true;
-    } else {
-      alert('邮件发送失败：' + (result.msg || result.message || '未知错误'));
-      return false;
+    try {
+        // 严格对齐手动测试的请求参数
+        const requestBody = {
+            "to": to.trim(),
+            "subject": subject,
+            "content": content
+        };
+        console.log('【邮件请求参数】', requestBody); // 打印参数，方便调试
+        
+        const response = await fetch(mailApiUrl, {
+            method: 'POST',
+            headers: {
+                'accept': '*/*',
+                'token': mailToken, // 你的邮件接口token
+                'Content-Type': 'application/json',
+                'Cache-Control': 'no-cache'
+            },
+            body: JSON.stringify(requestBody),
+            credentials: 'omit' // 禁用凭证，避免跨域干扰
+        });
+        
+        // 打印响应状态和内容
+        console.log('【邮件接口响应状态】', response.status);
+        const result = await response.json();
+        console.log('【邮件接口返回数据】', result);
+        
+        // 兼容不同的返回格式
+        if (result.code === '200' || result.status === 200 || result.success) {
+            return true;
+        } else {
+            alert('邮件发送失败：' + (result.msg || result.message || 'API返回非成功状态'));
+            return false;
+        }
+    } catch (error) {
+        console.error('【邮件发送异常】', error);
+        alert('邮件发送失败：' + error.message);
+        return false;
     }
-  } catch (error) {
-    console.error('邮件发送异常：', error);
-    alert('邮件发送失败：' + error.message);
-    return false;
-  }
 }
 
 // 验证码倒计时
@@ -237,11 +255,14 @@ function startCodeTimer(btn) {
     btn.disabled = true;
     btn.textContent = `重新发送(${count}s)`;
     
-    codeTimer = setInterval(() => {
+    // 清除旧的倒计时器
+    if (window.codeTimer) clearInterval(window.codeTimer);
+    
+    window.codeTimer = setInterval(() => {
         count--;
         btn.textContent = `重新发送(${count}s)`;
         if (count <= 0) {
-            clearInterval(codeTimer);
+            clearInterval(window.codeTimer);
             btn.disabled = false;
             btn.textContent = '发送验证码';
         }
@@ -260,9 +281,15 @@ async function register() {
         alert('请填写所有必填字段！');
         return;
     }
-    
     if (password.length < 6) {
         alert('密码至少6位！');
+        return;
+    }
+    
+    // 邮箱格式校验
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('邮箱格式不正确！');
         return;
     }
     
@@ -274,7 +301,7 @@ async function register() {
         }
         
         // 验证验证码
-        const { data: codeData, error: codeError } = await supabase
+        const { data: codeData, error: codeError } = await window.supabase
             .from('verification_codes')
             .select('*')
             .eq('email', email)
@@ -290,7 +317,7 @@ async function register() {
     }
     
     // Supabase注册账号
-    const { data: { user }, error: authError } = await supabase.auth.signUp({
+    const { data: { user }, error: authError } = await window.supabase.auth.signUp({
         email,
         password
     });
@@ -301,7 +328,7 @@ async function register() {
     }
     
     // 保存用户信息
-    const { error: userError } = await supabase
+    const { error: userError } = await window.supabase
         .from('users')
         .insert([{ id: user.id, username, email, points: 0, status: 1 }]);
     
@@ -312,7 +339,7 @@ async function register() {
     
     // 如果启用了邮箱验证码，删除已使用的验证码
     if (emailVerificationEnabled && code) {
-        await supabase
+        await window.supabase
             .from('verification_codes')
             .delete()
             .eq('email', email)
@@ -333,8 +360,15 @@ async function login() {
         return;
     }
     
+    // 邮箱格式校验
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('邮箱格式不正确！');
+        return;
+    }
+    
     try {
-        const { data: { user }, error } = await supabase.auth.signInWithPassword({
+        const { data: { user }, error } = await window.supabase.auth.signInWithPassword({
             email,
             password
         });
@@ -344,12 +378,13 @@ async function login() {
             return;
         }
         
-        currentUser = user;
-        await loadUserInfo();
-        await checkSignStatus();
-        switchAuthUI(true);
+        window.currentUser = user;
+        await window.loadUserInfo();
+        await window.checkSignStatus();
+        window.switchAuthUI(true);
         
         // 管理员判断
+        const ADMIN_EMAIL = 'admin@example.com'; // 管理员邮箱
         if (email === ADMIN_EMAIL) {
             document.getElementById('admin-link').style.display = 'inline-block';
         }
@@ -371,9 +406,15 @@ async function resetPassword() {
         alert('请填写邮箱和新密码！');
         return;
     }
-    
     if (newPwd.length < 6) {
         alert('密码至少6位！');
+        return;
+    }
+    
+    // 邮箱格式校验
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        alert('邮箱格式不正确！');
         return;
     }
     
@@ -385,7 +426,7 @@ async function resetPassword() {
         }
         
         // 验证验证码
-        const { data: codeData, error: codeError } = await supabase
+        const { data: codeData, error: codeError } = await window.supabase
             .from('verification_codes')
             .select('*')
             .eq('email', email)
@@ -401,7 +442,7 @@ async function resetPassword() {
     }
     
     // 重置密码
-    const { error } = await supabase.auth.updateUser({
+    const { error } = await window.supabase.auth.updateUser({
         password: newPwd
     });
     
@@ -412,7 +453,7 @@ async function resetPassword() {
     
     // 如果启用了邮箱验证码，删除已使用的验证码
     if (emailVerificationEnabled && code) {
-        await supabase
+        await window.supabase
             .from('verification_codes')
             .delete()
             .eq('email', email)
@@ -426,17 +467,22 @@ async function resetPassword() {
 
 async function logout() {
     try {
-        const { error } = await supabase.auth.signOut();
+        const { error } = await window.supabase.auth.signOut();
         if (error) {
             alert('退出失败：' + error.message);
             return;
         }
         
-        currentUser = null;
-        switchAuthUI(false);
+        window.currentUser = null;
+        window.switchAuthUI(false);
         document.getElementById('admin-link').style.display = 'none';
         alert('退出成功！');
     } catch (err) {
         alert('退出异常：' + err.message);
     }
 }
+
+// 暴露函数到全局（供main.js调用）
+window.sendMail = sendMail;
+window.startCodeTimer = startCodeTimer;
+window.emailVerificationEnabled = emailVerificationEnabled;
