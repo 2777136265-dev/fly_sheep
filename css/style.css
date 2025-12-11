@@ -1,3 +1,24 @@
+
+/* 新增：强制重置所有元素布局 */
+* {
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  float: none !important;
+}
+body {
+  width: 100% !important;
+  overflow-x: hidden !important;
+}
+.navbar {
+  width: 100% !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  justify-content: space-between !important;
+}
+.modal {
+  z-index: 9999 !important; /* 确保弹窗能显示 */
+}
 /* 全局重置 */
 * {
     margin: 0;
