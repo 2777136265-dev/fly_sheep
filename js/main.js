@@ -48,10 +48,13 @@ window.addEventListener('DOMContentLoaded', async () => {
         await checkSignStatus();
         switchAuthUI(true);
         
-        // 检查是否是管理员
-        if (currentUser.email === ADMIN_EMAIL) {
-            document.getElementById('admin-link').style.display = 'inline-block';
-        }
+    
+
+      // 检查是否是管理员
+      if (currentUser.email === ADMIN_EMAIL) {
+      document.getElementById('admin-link').style.display = 'inline-block';
+      }
+      
     }
 
     // 检查路径是否为管理员路径
