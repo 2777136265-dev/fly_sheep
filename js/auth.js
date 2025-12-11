@@ -190,25 +190,29 @@ async function sendFindPwdCode() {
     alert('验证码已发送至你的邮箱！');
 }
 
-// 邮件发送核心函数
+// 修复后的 sendMail 函数（重点检查 headers）
 async function sendMail(to, subject, content) {
-    try {
-        const response = await fetch(mailApiUrl, {
-            method: 'POST',
-            headers: {
-                'accept': '*/*',
-                'token': mailToken,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ to, subject, content })
-        });
-        
-        const result = await response.json();
-        return result.code === '200' && result.data;
-    } catch (error) {
-        console.error('邮件发送失败：', error);
-        return false;
-    }
+  try {
+    const response = await fetch(mailApiUrl, {
+      method: 'POST',
+      headers: {
+        'accept': '*/*',
+        'token': 'oqrUZ6_DEc0gc4YBGvRlygSCiHY4', // 必须和手动测试一致
+        'Content-Type': 'application/json',
+        // 新增：避免 OPTIONS 预检失败（部分 API 要求）
+        'Access-Control-Allow-Origin': '*'
+      },
+      body: JSON.stringify({ to, subject, content }),
+      // 新增：允许跨域携带凭证（若 API 需验证）
+      credentials: 'omit'
+    });
+    const result = await response.json();
+    console.log('邮件接口返回：', result); // 新增日志，方便排查
+    return result.code === '200' && result.data;
+  } catch (error) {
+    console.error('邮件发送失败：', error); // 打印具体错误
+    return false;
+  }
 }
 
 // 验证码倒计时
