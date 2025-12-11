@@ -1,3 +1,110 @@
+// 等待DOM加载完成后执行
+document.addEventListener('DOMContentLoaded', function() {
+  // 核心元素获取
+  const modal = document.getElementById('auth-modal');
+  const closeBtn = document.getElementById('close-modal');
+  const openLoginBtn = document.getElementById('open-login-btn');
+  const openRegisterBtn = document.getElementById('open-register-btn');
+  const tabBtns = document.querySelectorAll('.tab-btn');
+  const modalForms = document.querySelectorAll('.modal-form');
+
+  // 1. 关闭弹窗
+  closeBtn.addEventListener('click', function() {
+    modal.style.display = 'none';
+  });
+
+  // 2. 点击遮罩层关闭弹窗（可选）
+  modal.addEventListener('click', function(e) {
+    if (e.target === modal) {
+      modal.style.display = 'none';
+    }
+  });
+
+  // 3. 标签页切换逻辑
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      // 移除所有标签的active类
+      tabBtns.forEach(b => b.classList.remove('active'));
+      // 给当前标签加active
+      this.classList.add('active');
+      // 获取目标表单ID
+      const targetTab = this.getAttribute('data-tab');
+      // 隐藏所有表单，显示目标表单
+      modalForms.forEach(form => {
+        form.classList.remove('active');
+        form.style.display = 'none';
+      });
+      const targetForm = document.getElementById(`${targetTab}-form`);
+      targetForm.classList.add('active');
+      targetForm.style.display = 'block';
+    });
+  });
+
+  // 4. 打开登录弹窗（默认显示登录表单）
+  openLoginBtn.addEventListener('click', function() {
+    // 显示弹窗
+    modal.style.display = 'flex';
+    // 重置标签和表单为登录状态
+    tabBtns.forEach(b => b.classList.remove('active'));
+    document.getElementById('login-tab').classList.add('active');
+    modalForms.forEach(form => {
+      form.classList.remove('active');
+      form.style.display = 'none';
+    });
+    document.getElementById('login-form').classList.add('active');
+    document.getElementById('login-form').style.display = 'block';
+  });
+
+  // 5. 打开注册弹窗（默认显示注册表单）
+  openRegisterBtn.addEventListener('click', function() {
+    // 显示弹窗
+    modal.style.display = 'flex';
+    // 重置标签和表单为注册状态
+    tabBtns.forEach(b => b.classList.remove('active'));
+    document.getElementById('register-tab').classList.add('active');
+    modalForms.forEach(form => {
+      form.classList.remove('active');
+      form.style.display = 'none';
+    });
+    document.getElementById('register-form').classList.add('active');
+    document.getElementById('register-form').style.display = 'block';
+  });
+
+  // 6. 登录/注册/找回密码按钮点击逻辑（可自行扩展接口请求）
+  document.getElementById('do-login').addEventListener('click', function() {
+    const account = document.getElementById('login-account').value;
+    const pwd = document.getElementById('login-pwd').value;
+    if (!account || !pwd) {
+      alert('请输入账号和密码！');
+      return;
+    }
+    // 这里可添加登录接口请求逻辑
+    alert(`登录请求：账号=${account}，密码=${pwd}`);
+  });
+
+  document.getElementById('do-register').addEventListener('click', function() {
+    const username = document.getElementById('reg-username').value;
+    const email = document.getElementById('reg-email').value;
+    const pwd = document.getElementById('reg-pwd').value;
+    if (!username || !email || !pwd) {
+      alert('请填写完整注册信息！');
+      return;
+    }
+    // 这里可添加注册接口请求逻辑
+    alert(`注册请求：用户名=${username}，邮箱=${email}，密码=${pwd}`);
+  });
+
+  document.getElementById('do-forgot').addEventListener('click', function() {
+    const email = document.getElementById('forgot-email').value;
+    if (!email) {
+      alert('请输入绑定邮箱！');
+      return;
+    }
+    // 这里可添加找回密码接口请求逻辑
+    alert(`发送验证码到：${email}`);
+  });
+});
+
 // 全局变量定义（解决跨文件访问问题）
 const mailApiUrl = '/api/wx_mail/send'; // Netlify代理的邮件接口地址
 const mailToken = 'oqrUZ6_DEc0gc4YBGvRlygSCiHY4'; // 你的邮件接口token
