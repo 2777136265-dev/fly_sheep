@@ -1,3 +1,119 @@
+/* 弹窗容器 */
+.auth-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6); /* 半透明遮罩 */
+  z-index: 9999; /* 最高层级，避免被遮挡 */
+  display: none; /* 默认隐藏 */
+  justify-content: center;
+  align-items: center;
+}
+
+/* 弹窗内容 */
+.modal-content {
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  width: 420px;
+  max-width: 90%;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* 关闭按钮 */
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+}
+.close-btn:hover {
+  color: #ff4444;
+}
+
+/* 标签切换栏 */
+.tab-btns {
+  display: flex;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #eee;
+}
+.tab-btn {
+  padding: 8px 15px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #666;
+  font-size: 16px;
+  flex: 1;
+  text-align: center;
+}
+.tab-btn.active {
+  color: #1677ff;
+  border-bottom: 2px solid #1677ff;
+}
+
+/* 表单样式 */
+.modal-form {
+  display: none; /* 默认隐藏所有表单 */
+}
+.modal-form.active {
+  display: block; /* 仅显示active的表单 */
+}
+.form-group {
+  margin-bottom: 15px;
+}
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  color: #333;
+  font-size: 14px;
+}
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+.submit-btn {
+  width: 100%;
+  padding: 12px;
+  background: #1677ff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+.submit-btn:hover {
+  background: #0f62d9;
+}
+
+/* 页面触发按钮样式（可选） */
+.nav-btns {
+  margin: 20px;
+}
+.nav-btns button {
+  padding: 8px 15px;
+  margin-right: 10px;
+  background: #1677ff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.nav-btns button:hover {
+  background: #0f62d9;
+}
+
 /* 基础样式 */
 * {
     margin: 0;
