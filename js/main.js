@@ -1,28 +1,8 @@
 // 监听 URL 变化，支持 /admin 路径直接进入后台
 window.addEventListener('popstate', () => {
-  if (window.location.pathname === '/admin' && currentUser?.email === ADMIN_EMAIL) {
-    showAdminPanel();
-  }
-});
-
-// 初始化时检查路径
-window.addEventListener('DOMContentLoaded', async () => {
-  // 原有初始化代码...
-
-// 全局暴露核心变量（解决跨JS文件访问问题）
-window.mailApiUrl = '/api/wx_mail/send'; // Netlify代理路径
-window.mailToken = 'oqrUZ6_DEc0gc4YBGvRlygSCiHY4'; // 你的邮件token
-window.emailVerificationEnabled = true; // 验证码开关
-
-// 原有Supabase配置（无需改）
-const supabaseUrl = import.meta.env.SUPABASE_URL;
-const supabaseKey = import.meta.env.SUPABASE_KEY;
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-// 其他原有代码...
-  
-  // 新增：若路径是 /admin 且是管理员，直接显示后台
-  if (window.location.pathname === '/admin' && currentUser?.email === ADMIN_EMAIL) {
+  // 修改：检查管理员登录状态（通过URL参数验证）
+  const urlParams = new URLSearchParams(window.location.search);
+  if (window.location.pathname === '/admin' && (currentUser?.email === ADMIN_EMAIL || urlParams.get('admin') === '1')) {
     showAdminPanel();
   }
 });
@@ -30,7 +10,7 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 // 全局变量
 let currentUser = null;
 let codeTimer = null; // 验证码倒计时器
-let emailVerificationEnabled = true; // 邮箱验证码开关状态
+let emailVerificationEnabled = false; // 修改：默认关闭邮箱验证码
 
 // Supabase配置
 const supabaseUrl = 'https://neflfdfpzyjookonmleo.supabase.co';
@@ -41,8 +21,16 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 const mailApiUrl = 'https://api.ruojy.top/api/wx_mail/send';
 const mailToken = 'oqrUZ6_DEc0gc4YBGvRlygSCiHY4';
 
-// 管理员账号
+// 全局暴露核心变量（解决跨JS文件访问问题）
+window.mailApiUrl = mailApiUrl;
+window.mailToken = mailToken;
+window.emailVerificationEnabled = emailVerificationEnabled;
+window.supabase = supabase; // 暴露supabase实例供其他文件使用
+
+// 管理员账号配置
 const ADMIN_EMAIL = 'admin@example.com';
+const DEFAULT_ADMIN_USERNAME = 'admin';
+const DEFAULT_ADMIN_PASSWORD = 'admin123'; // 默认管理员密码
 
 // 页面初始化
 window.addEventListener('DOMContentLoaded', async () => {
@@ -64,6 +52,12 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (currentUser.email === ADMIN_EMAIL) {
             document.getElementById('admin-link').style.display = 'inline-block';
         }
+    }
+
+    // 检查路径是否为管理员路径
+    const urlParams = new URLSearchParams(window.location.search);
+    if (window.location.pathname === '/admin' && (currentUser?.email === ADMIN_EMAIL || urlParams.get('admin') === '1')) {
+        showAdminPanel();
     }
 });
 
@@ -163,7 +157,7 @@ function switchAuthUI(isLoggedIn) {
 
 // 加载系统设置
 async function loadSystemSettings() {
-    const { data: settings } = await supabase
+    const { data: settings, error } = await supabase
         .from('system_settings')
         .select('*')
         .single();
@@ -174,11 +168,14 @@ async function loadSystemSettings() {
             document.getElementById('email-verification-switch').checked = emailVerificationEnabled;
         }
     } else {
-        // 初始化设置
+        // 修改：初始化时默认关闭邮箱验证
         await supabase
             .from('system_settings')
-            .insert([{ email_verification_enabled: true }]);
+            .insert([{ email_verification_enabled: false }]);
+        emailVerificationEnabled = false;
     }
+    // 同步全局变量
+    window.emailVerificationEnabled = emailVerificationEnabled;
 }
 
 // 保存系统设置
@@ -194,12 +191,21 @@ async function saveSystemSettings() {
         return false;
     }
     
+    // 同步全局变量
+    window.emailVerificationEnabled = emailVerificationEnabled;
     alert('设置已保存！');
     return true;
 }
 
 // 显示管理员面板
 function showAdminPanel() {
+    // 验证管理员权限
+    const urlParams = new URLSearchParams(window.location.search);
+    if (currentUser?.email !== ADMIN_EMAIL && urlParams.get('admin') !== '1') {
+        alert('请先通过管理员登录页登录');
+        return;
+    }
+    
     document.getElementById('main-container').style.display = 'none';
     document.getElementById('admin-panel').classList.add('active');
     loadUserList(); // 加载用户列表
@@ -210,3 +216,16 @@ function hideAdminPanel() {
     document.getElementById('admin-panel').classList.remove('active');
     document.getElementById('main-container').style.display = 'block';
 }
+
+// 管理员登录验证函数（供登录页调用）
+window.adminLogin = async (username, password) => {
+    if (username !== DEFAULT_ADMIN_USERNAME) {
+        return { success: false, message: '管理员账号错误' };
+    }
+    if (password !== DEFAULT_ADMIN_PASSWORD) {
+        return { success: false, message: '管理员密码错误' };
+    }
+    
+    // 可以在这里添加管理员账号到Supabase的逻辑（如果需要）
+    return { success: true };
+};
