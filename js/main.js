@@ -1,3 +1,20 @@
+// 监听 URL 变化，支持 /admin 路径直接进入后台
+window.addEventListener('popstate', () => {
+  if (window.location.pathname === '/admin' && currentUser?.email === ADMIN_EMAIL) {
+    showAdminPanel();
+  }
+});
+
+// 初始化时检查路径
+window.addEventListener('DOMContentLoaded', async () => {
+  // 原有初始化代码...
+  
+  // 新增：若路径是 /admin 且是管理员，直接显示后台
+  if (window.location.pathname === '/admin' && currentUser?.email === ADMIN_EMAIL) {
+    showAdminPanel();
+  }
+});
+
 // 全局变量
 let currentUser = null;
 let codeTimer = null; // 验证码倒计时器
